@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Звіт по ефективності банерів</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--g:#34D186;--g2:#1fae6b;--ink:#0f1e17;--mut:#5b6b63;--bg:#f4f7f5;--line:#e5ece8;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px 60px}
+header{background:linear-gradient(135deg,#34D186 0%,#1fae6b 100%);color:#fff;padding:48px 0 120px}
+header .wrap{padding-bottom:0}
+header h1{font-size:34px;font-weight:800;letter-spacing:-.5px}
+header p{margin-top:10px;font-size:16px;opacity:.92;max-width:760px}
+.badge{display:inline-block;background:rgba(255,255,255,.2);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:600;margin-bottom:16px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-top:-90px}
+.kpi{background:#fff;border-radius:16px;padding:20px;box-shadow:0 8px 30px rgba(16,40,30,.08);border:1px solid var(--line)}
+.kpi .v{font-size:25px;font-weight:800}
+.kpi .l{font-size:12px;color:var(--mut);margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.kpi .v small{font-size:15px;color:var(--g);font-weight:700}
+section{margin-top:40px}
+h2{font-size:20px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+h2::before{content:'';width:6px;height:22px;background:var(--g);border-radius:4px;display:inline-block}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.chartbox{background:#fff;border-radius:16px;border:1px solid var(--line);padding:20px;box-shadow:0 4px 18px rgba(16,40,30,.05)}
+.chartbox h4{font-size:14px;font-weight:700;margin-bottom:12px;color:#26362e}
+.chartbox.full{grid-column:1/-1}
+.tablewrap{background:#fff;border-radius:16px;border:1px solid var(--line);overflow:hidden;box-shadow:0 4px 18px rgba(16,40,30,.05)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{background:#f0f7f3;text-align:left;padding:13px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#3a5348;font-weight:700;border-bottom:2px solid var(--line)}
+td{padding:13px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:none} tr:hover td{background:#fafcfb}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.strong{font-weight:800} .rank{font-weight:800;color:var(--g);width:34px}
+.bname{font-weight:700;max-width:260px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--mut)}
+.small{font-size:11px} .na{color:#b4c1ba;font-style:italic}
+.shrd{display:inline-block;background:#fef3d7;color:#9a6b00;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;vertical-align:middle}
+.pill{padding:3px 9px;border-radius:999px;font-weight:700;font-size:12px}
+.pill.hi{background:#dbf5e8;color:#0e8a4f} .pill.mid{background:#fef3d7;color:#9a6b00} .pill.lo{background:#fde3e3;color:#c0392b}
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.card{background:#fff;border-radius:16px;border:1px solid var(--line);padding:22px;box-shadow:0 4px 18px rgba(16,40,30,.05)}
+.card-h{display:flex;gap:14px;align-items:flex-start}
+.idx{background:var(--g);color:#fff;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 34px}
+.titles h3{font-size:15px;font-weight:800;line-height:1.3} .titles .sub{font-size:11.5px;color:var(--mut);margin-top:3px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+.tag{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px}
+.tag.win{background:#dbf5e8;color:#0e8a4f} .tag.ok{background:#e6f0fb;color:#1f6fb2} .tag.low{background:#fde3e3;color:#c0392b}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:6px 0 14px}
+.m{background:#f7faf8;border-radius:10px;padding:10px}
+.m span{display:block;font-size:10px;color:var(--mut);font-weight:600;text-transform:uppercase}
+.m b{font-size:15px}
+.verdict{font-size:13px;color:#26362e;background:#f0f7f3;border-left:3px solid var(--g);padding:12px 14px;border-radius:0 10px 10px 0}
+footer{margin-top:40px;color:var(--mut);font-size:12.5px;text-align:center;line-height:1.7}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.cards,.charts{grid-template-columns:1fr}.tablewrap{overflow-x:auto}}
+</style></head>
+<body>
+<header><div class="wrap">
+  <span class="badge">In-app · Home screen banners · Delivery / Eater</span>
+  <h1>Звіт по ефективності банерів</h1>
+  <p>Зіставлення назв кампаній із Modal ID та відпрацювання кожного сетапу. VARUS і LOKO показані окремими сетапами (різні poll-кампанії). Період: червень–серпень 2026.</p>
+</div></header>
+<div class="wrap">
+  <div class="kpis">
+    <div class="kpi"><div class="v">10</div><div class="l">Сетапів</div></div>
+    <div class="kpi"><div class="v">232 813</div><div class="l">Охоплення (unique)</div></div>
+    <div class="kpi"><div class="v">41 090</div><div class="l">Конверсій у стор</div></div>
+    <div class="kpi"><div class="v">2.00<small>%</small></div><div class="l">Сер. CTR</div></div>
+    <div class="kpi"><div class="v">€1 485</div><div class="l">GMV · 89 замовл.</div></div>
+  </div>
+
+  <section>
+    <h2>Динаміка по місяцях</h2>
+    <div class="charts">
+      <div class="chartbox"><h4>Охоплення (unique view) по місяцях</h4><canvas id="c1" height="150"></canvas></div>
+      <div class="chartbox"><h4>Конверсія та CTR по місяцях</h4><canvas id="c2" height="150"></canvas></div>
+      <div class="chartbox full"><h4>Охоплення по сетапах: липень vs серпень</h4><canvas id="c3" height="120"></canvas></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Рейтинг сетапів за охопленням</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>#</th><th>Банер / сетап</th><th>Modal ID</th><th>Період</th>
+        <th class="num">Охоплення</th><th class="num">CTR</th><th class="num">Конверсії</th>
+        <th class="num">CVR</th><th class="num">Замовл.</th><th class="num">GMV</th></tr></thead>
+      <tbody><tr>
+      <td class="rank">1</td>
+      <td class="bname">UA LOKO FFD all cities<br><span class="mono small">poll 4201682</span></td>
+      <td class="mono">4321017</td>
+      <td class="mono small">2026-06-30<br>→ 2026-08-31</td>
+      <td class="num strong">135 272</td>
+      <td class="num">1.91%</td>
+      <td class="num">26 358</td>
+      <td class="num"><span class="pill hi">19.5%</span></td>
+      <td class="num"><span class="na">н/д</span></td>
+      <td class="num"><span class="na">н/д</span></td>
+    </tr><tr>
+      <td class="rank">2</td>
+      <td class="bname">VARUS ID50 FBD50 MOV600 August<br><span class="mono small">poll 4501413</span></td>
+      <td class="mono">4710764</td>
+      <td class="mono small">2026-07-31<br>→ 2026-08-16</td>
+      <td class="num strong">38 392</td>
+      <td class="num">1.59%</td>
+      <td class="num">6 397</td>
+      <td class="num"><span class="pill hi">16.7%</span></td>
+      <td class="num">84</td>
+      <td class="num">€1 405 <span class="shrd" title="Спільний Modal ID для двох сетапів">спільн.</span></td>
+    </tr><tr>
+      <td class="rank">3</td>
+      <td class="bname">VARUS ID50 FBD50 MOV600 August<br><span class="mono small">poll 4591410</span></td>
+      <td class="mono">4710764</td>
+      <td class="mono small">2026-07-31<br>→ 2026-08-16</td>
+      <td class="num strong">26 534</td>
+      <td class="num">3.68%</td>
+      <td class="num">1 641</td>
+      <td class="num"><span class="pill lo">6.2%</span></td>
+      <td class="num">84</td>
+      <td class="num">€1 405 <span class="shrd" title="Спільний Modal ID для двох сетапів">спільн.</span></td>
+    </tr><tr>
+      <td class="rank">4</td>
+      <td class="bname">ANRI-PHARM FBD75 August</td>
+      <td class="mono">4680759</td>
+      <td class="mono small">2026-07-31<br>→ 2026-08-31</td>
+      <td class="num strong">18 076</td>
+      <td class="num">1.26%</td>
+      <td class="num">4 160</td>
+      <td class="num"><span class="pill hi">23.0%</span></td>
+      <td class="num"><span class="na">н/д</span></td>
+      <td class="num"><span class="na">н/д</span></td>
+    </tr><tr>
+      <td class="rank">5</td>
+      <td class="bname">UA Taistra FBD50 MOV600</td>
+      <td class="mono">4770759</td>
+      <td class="mono small">2026-07-31<br>→ 2026-09-01</td>
+      <td class="num strong">7 128</td>
+      <td class="num">1.32%</td>
+      <td class="num">1 747</td>
+      <td class="num"><span class="pill hi">24.5%</span></td>
+      <td class="num">2</td>
+      <td class="num">€39</td>
+    </tr><tr>
+      <td class="rank">6</td>
+      <td class="bname">UA Caferynok Stores Tab ID20 FBD75</td>
+      <td class="mono">4381267</td>
+      <td class="mono small">2026-07-27<br>→ 2026-08-09</td>
+      <td class="num strong">2 587</td>
+      <td class="num">1.66%</td>
+      <td class="num">153</td>
+      <td class="num"><span class="pill lo">5.9%</span></td>
+      <td class="num"><span class="na">н/д</span></td>
+      <td class="num"><span class="na">н/д</span></td>
+    </tr><tr>
+      <td class="rank">7</td>
+      <td class="bname">UA Kopiyka FFD MOV300</td>
+      <td class="mono">4530765</td>
+      <td class="mono small">2026-07-31<br>→ 2026-08-31</td>
+      <td class="num strong">2 585</td>
+      <td class="num">1.59%</td>
+      <td class="num">483</td>
+      <td class="num"><span class="pill hi">18.7%</span></td>
+      <td class="num"><span class="na">н/д</span></td>
+      <td class="num"><span class="na">н/д</span></td>
+    </tr><tr>
+      <td class="rank">8</td>
+      <td class="bname">UA Caferynok Stores Tab ID15 FBD75</td>
+      <td class="mono">4740759</td>
+      <td class="mono small">2026-08-09<br>→ 2026-08-23</td>
+      <td class="num strong">2 106</td>
+      <td class="num">3.99%</td>
+      <td class="num">142</td>
+      <td class="num"><span class="pill lo">6.7%</span></td>
+      <td class="num">3</td>
+      <td class="num">€41</td>
+    </tr><tr>
+      <td class="rank">9</td>
+      <td class="bname">UA Caferynok Stores Tab ID15 Desserts And Drinks FBD75</td>
+      <td class="mono">4560763</td>
+      <td class="mono small">2026-08-23<br>→ 2026-09-06</td>
+      <td class="num strong">132</td>
+      <td class="num">3.03%</td>
+      <td class="num">9</td>
+      <td class="num"><span class="pill lo">6.8%</span></td>
+      <td class="num">0</td>
+      <td class="num">€0</td>
+    </tr><tr>
+      <td class="rank">10</td>
+      <td class="bname">UA LOKO FFD all cities<br><span class="mono small">poll 4501416</span></td>
+      <td class="mono">4321017</td>
+      <td class="mono small">2026-07-31<br>→ 2027-07-31</td>
+      <td class="num strong">1</td>
+      <td class="num">0.00%</td>
+      <td class="num">0</td>
+      <td class="num"><span class="pill lo">0.0%</span></td>
+      <td class="num"><span class="na">н/д</span></td>
+      <td class="num"><span class="na">н/д</span></td>
+    </tr></tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Відпрацювання кожного сетапу</h2>
+    <div class="cards"><div class="card">
+      <div class="card-h"><div class="idx">1</div>
+        <div class="titles"><h3>UA LOKO FFD all cities</h3>
+        <div class="sub">Modal ID <b>4321017</b> · poll <b>4201682</b> <span class="shrd">спільний Modal ID</span><br>grouped_banner · 2026-06-30 → 2026-08-31</div></div></div>
+      <div class="tags"><span class="tag win">🏆 Флагман охоплення</span><span class="tag ok">✅ Сильна конверсія</span></div>
+      <div class="metrics">
+        <div class="m"><span>Охоплення</span><b>135 272</b></div>
+        <div class="m"><span>Показів</span><b>400 229</b></div>
+        <div class="m"><span>CTR</span><b>1.91%</b></div>
+        <div class="m"><span>Конверсії</span><b>26 358</b></div>
+        <div class="m"><span>CVR</span><b>19.5%</b></div>
+        <div class="m"><span>Замовлення</span><b>н/д</b></div>
+        <div class="m"><span>GMV</span><b>н/д</b></div>
+        <div class="m"><span>Dismiss</span><b>0</b></div>
+      </div>
+      <p class="verdict">Абсолютний лідер: 135 272 охоплення та 26 358 переходів у стор (CVR 19.5%). Ключовий драйвер трафіку — тримати активним і масштабувати.</p>
+    </div><div class="card">
+      <div class="card-h"><div class="idx">2</div>
+        <div class="titles"><h3>VARUS ID50 FBD50 MOV600 August</h3>
+        <div class="sub">Modal ID <b>4710764</b> · poll <b>4501413</b> <span class="shrd">спільний Modal ID</span><br>grouped_banner · 2026-07-31 → 2026-08-16</div></div></div>
+      <div class="tags"><span class="tag ok">📈 Велике охоплення</span><span class="tag ok">✅ Сильна конверсія</span></div>
+      <div class="metrics">
+        <div class="m"><span>Охоплення</span><b>38 392</b></div>
+        <div class="m"><span>Показів</span><b>93 225</b></div>
+        <div class="m"><span>CTR</span><b>1.59%</b></div>
+        <div class="m"><span>Конверсії</span><b>6 397</b></div>
+        <div class="m"><span>CVR</span><b>16.7%</b></div>
+        <div class="m"><span>Замовлення</span><b>84</b></div>
+        <div class="m"><span>GMV</span><b>€1 405</b></div>
+        <div class="m"><span>Dismiss</span><b>0</b></div>
+      </div>
+      <p class="verdict">Стабільний перформер: CVR 16.7% при 38 392 охоплення. Працює добре, можна нарощувати покази.</p>
+    </div><div class="card">
+      <div class="card-h"><div class="idx">3</div>
+        <div class="titles"><h3>VARUS ID50 FBD50 MOV600 August</h3>
+        <div class="sub">Modal ID <b>4710764</b> · poll <b>4591410</b> <span class="shrd">спільний Modal ID</span><br>grouped_banner · 2026-07-31 → 2026-08-16</div></div></div>
+      <div class="tags"><span class="tag low">⚠️ Слабка конверсія</span><span class="tag ok">👆 Високий CTR</span></div>
+      <div class="metrics">
+        <div class="m"><span>Охоплення</span><b>26 534</b></div>
+        <div class="m"><span>Показів</span><b>56 535</b></div>
+        <div class="m"><span>CTR</span><b>3.68%</b></div>
+        <div class="m"><span>Конверсії</span><b>1 641</b></div>
+        <div class="m"><span>CVR</span><b>6.2%</b></div>
+        <div class="m"><span>Замовлення</span><b>84</b></div>
+        <div class="m"><span>GMV</span><b>€1 405</b></div>
+        <div class="m"><span>Dismiss</span><b>0</b></div>
+      </div>
+      <p class="verdict">Нижче середнього: CVR 6.2%, CTR 3.68% при охопленні 26 534. Переглянути креатив, меседж і таргетинг.</p>
+    </div><div class="card">
+      <div class="card-h"><div class="idx">4</div>
+        <div class="titles"><h3>ANRI-PHARM FBD75 August</h3>
+        <div class="sub">Modal ID <b>4680759</b> · poll <b>4591409</b> <br>grouped_banner · 2026-07-31 → 2026-08-31</div></div></div>
+      <div class="tags"><span class="tag win">⭐ Дуже висока конверсія</span></div>
+      <div class="metrics">
+        <div class="m"><span>Охоплення</span><b>18 076</b></div>
+        <div class="m"><span>Показів</span><b>52 728</b></div>
+        <div class="m"><span>CTR</span><b>1.26%</b></div>
+        <div class="m"><span>Конверсії</span><b>4 160</b></div>
+        <div class="m"><span>CVR</span><b>23.0%</b></div>
+        <div class="m"><span>Замовлення</span><b>н/д</b></div>
+        <div class="m"><span>GMV</span><b>н/д</b></div>
+        <div class="m"><span>Dismiss</span><b>0</b></div>
+      </div>
+      <p class="verdict">Найвища конверсія в наборі (23.0%), але охоплення лише 18 076. Великий потенціал — дати більше показів/кращу позицію.</p>
+    </div><div class="card">
+      <div class="card-h"><div class="idx">5</div>
+        <div class="titles"><h3>UA Taistra FBD50 MOV600</h3>
+        <div class="sub">Modal ID <b>4770759</b> · poll <b>4621408</b> <br>grouped_banner · 2026-07-31 → 2026-09-01</div></div></div>
+      <div class="tags"><span class="tag win">⭐ Дуже висока конверсія</span></div>
+      <div class="metrics">
+        <div class="m"><span>Охоплення</span><b>7 128</b></div>
+        <div class="m"><span>Показів</span><b>13 080</b></div>
+        <div class="m"><span>CTR</span><b>1.32%</b></div>
+        <div class="m"><span>Конверсії</span><b>1 747</b></div>
+        <div class="m"><span>CVR</span><b>24.5%</b></div>
+        <div class="m"><span>Замовлення</span><b>2</b></div>
+        <div class="m"><span>GMV</span><b>€39</b></div>
+        <div class="m"><span>Dismiss</span><b>0</b></div>
+      </div>
+      <p class="verdict">Найвища конверсія в наборі (24.5%), але охоплення лише 7 128. Великий потенціал — дати більше показів/кращу позицію.</p>
+    </div><div class="card">
+      <div class="card-h"><div class="idx">6</div>
+        <div class="titles"><h3>UA Caferynok Stores Tab ID20 FBD75</h3>
+        <div class="sub">Modal ID <b>4381267</b> · poll <b>4231904</b> <br>grouped_banner · 2026-07-27 → 2026-08-09</div></div></div>
+      <div class="tags"><span class="tag low">🔻 Низьке охоплення</span><span class="tag low">⚠️ Слабка конверсія</span></div>
+      <div class="metrics">
+        <div class="m"><span>Охоплення</span><b>2 587</b></div>
+        <div class="m"><span>Показів</span><b>12 929</b></div>
+        <div class="m"><span>CTR</span><b>1.66%</b></div>
+        <div class="m"><span>Конверсії</span><b>153</b></div>
+        <div class="m"><span>CVR</span><b>5.9%</b></div>
+        <div class="m"><span>Замовлення</span><b>н/д</b></div>
+        <div class="m"><span>GMV</span><b>н/д</b></div>
+        <div class="m"><span>Dismiss</span><b>0</b></div>
+      </div>
+      <p class="verdict">Нижче середнього: CVR 5.9%, CTR 1.66% при охопленні 2 587. Переглянути креатив, меседж і таргетинг.</p>
+    </div><div class="card">
+      <div class="card-h"><div class="idx">7</div>
+        <div class="titles"><h3>UA Kopiyka FFD MOV300</h3>
+        <div class="sub">Modal ID <b>4530765</b> · poll <b>4711407</b> <br>grouped_banner · 2026-07-31 → 2026-08-31</div></div></div>
+      <div class="tags"><span class="tag low">🔻 Низьке охоплення</span><span class="tag ok">✅ Сильна конверсія</span></div>
+      <div class="metrics">
+        <div class="m"><span>Охоплення</span><b>2 585</b></div>
+        <div class="m"><span>Показів</span><b>6 607</b></div>
+        <div class="m"><span>CTR</span><b>1.59%</b></div>
+        <div class="m"><span>Конверсії</span><b>483</b></div>
+        <div class="m"><span>CVR</span><b>18.7%</b></div>
+        <div class="m"><span>Замовлення</span><b>н/д</b></div>
+        <div class="m"><span>GMV</span><b>н/д</b></div>
+        <div class="m"><span>Dismiss</span><b>0</b></div>
+      </div>
+      <p class="verdict">Стабільний перформер: CVR 18.7% при 2 585 охоплення. Працює добре, можна нарощувати покази.</p>
+    </div><div class="card">
+      <div class="card-h"><div class="idx">8</div>
+        <div class="titles"><h3>UA Caferynok Stores Tab ID15 FBD75</h3>
+        <div class="sub">Modal ID <b>4740759</b> · poll <b>4711406</b> <br>grouped_banner · 2026-08-09 → 2026-08-23</div></div></div>
+      <div class="tags"><span class="tag low">🔻 Низьке охоплення</span><span class="tag low">⚠️ Слабка конверсія</span><span class="tag ok">👆 Високий CTR</span></div>
+      <div class="metrics">
+        <div class="m"><span>Охоплення</span><b>2 106</b></div>
+        <div class="m"><span>Показів</span><b>4 765</b></div>
+        <div class="m"><span>CTR</span><b>3.99%</b></div>
+        <div class="m"><span>Конверсії</span><b>142</b></div>
+        <div class="m"><span>CVR</span><b>6.7%</b></div>
+        <div class="m"><span>Замовлення</span><b>3</b></div>
+        <div class="m"><span>GMV</span><b>€41</b></div>
+        <div class="m"><span>Dismiss</span><b>0</b></div>
+      </div>
+      <p class="verdict">Нижче середнього: CVR 6.7%, CTR 3.99% при охопленні 2 106. Переглянути креатив, меседж і таргетинг.</p>
+    </div><div class="card">
+      <div class="card-h"><div class="idx">9</div>
+        <div class="titles"><h3>UA Caferynok Stores Tab ID15 Desserts And Drinks FBD75</h3>
+        <div class="sub">Modal ID <b>4560763</b> · poll <b>4561406</b> <br>grouped_banner · 2026-08-23 → 2026-09-06</div></div></div>
+      <div class="tags"><span class="tag low">🔻 Низьке охоплення</span><span class="tag low">⚠️ Слабка конверсія</span><span class="tag ok">👆 Високий CTR</span></div>
+      <div class="metrics">
+        <div class="m"><span>Охоплення</span><b>132</b></div>
+        <div class="m"><span>Показів</span><b>216</b></div>
+        <div class="m"><span>CTR</span><b>3.03%</b></div>
+        <div class="m"><span>Конверсії</span><b>9</b></div>
+        <div class="m"><span>CVR</span><b>6.8%</b></div>
+        <div class="m"><span>Замовлення</span><b>0</b></div>
+        <div class="m"><span>GMV</span><b>€0</b></div>
+        <div class="m"><span>Dismiss</span><b>0</b></div>
+      </div>
+      <p class="verdict">Нижче середнього: CVR 6.8%, CTR 3.03% при охопленні 132. Переглянути креатив, меседж і таргетинг.</p>
+    </div><div class="card">
+      <div class="card-h"><div class="idx">10</div>
+        <div class="titles"><h3>UA LOKO FFD all cities</h3>
+        <div class="sub">Modal ID <b>4321017</b> · poll <b>4501416</b> <span class="shrd">спільний Modal ID</span><br>grouped_banner · 2026-07-31 → 2027-07-31</div></div></div>
+      <div class="tags"><span class="tag low">🔻 Низьке охоплення</span><span class="tag low">💤 Майже без показів</span></div>
+      <div class="metrics">
+        <div class="m"><span>Охоплення</span><b>1</b></div>
+        <div class="m"><span>Показів</span><b>2</b></div>
+        <div class="m"><span>CTR</span><b>0.00%</b></div>
+        <div class="m"><span>Конверсії</span><b>0</b></div>
+        <div class="m"><span>CVR</span><b>0.0%</b></div>
+        <div class="m"><span>Замовлення</span><b>н/д</b></div>
+        <div class="m"><span>GMV</span><b>н/д</b></div>
+        <div class="m"><span>Dismiss</span><b>0</b></div>
+      </div>
+      <p class="verdict">Сетап практично не відпрацював — лише 1 показів за весь період (poll 4501416, до 2027-07-31). Схоже, не активувався або перекритий іншим сетапом. Перевірити налаштування.</p>
+    </div></div>
+  </section>
+
+  <footer>
+    Джерело: dashboard-marketing — delivery, eater — in-app modal &amp; banner performance.<br>
+    CTR = unique tap / unique view · CVR = unique conversion (перехід у стор) / unique view · Замовлення/GMV — з session-метрик по Modal ID.<br>
+    «спільн.» = один Modal ID використовується двома сетапами (VARUS, LOKO), тож замовлення/GMV — сумарні по модалу. «н/д» = Modal ID не змепився до session-таблиці.
+  </footer>
+</div>
+<script>
+const D={"mlab": ["Червень", "Липень", "Серпень"], "reach": [4.0, 50661.0, 182148.0], "cvr": [0.0, 20.06, 16.98], "ctr": [50.0, 1.8, 2.06], "pb_labels": ["UA LOKO FFD all cities · 4201682", "VARUS ID50 FBD50 MOV600 August · 4501413", "VARUS ID50 FBD50 MOV600 August · 4591410", "ANRI-PHARM FBD75 August", "UA Taistra FBD50 MOV600", "UA Caferynok Stores Tab ID20 FBD75", "UA Kopiyka FFD MOV300", "UA Caferynok Stores Tab ID15 FBD75", "UA Caferynok Stores Tab ID15 Desserts And Drinks FBD75", "UA LOKO FFD all cities · 4501416"], "pb_jul": [49941.0, 78.0, 27.0, 6.0, 4.0, 605.0, 0, 0, 0, 0], "pb_aug": [85327.0, 38314.0, 26507.0, 18070.0, 7124.0, 1982.0, 2585.0, 2106.0, 132.0, 1.0]};
+const G='#34D186';
+new Chart(c1,{type:'bar',data:{labels:D.mlab,datasets:[{label:'Охоплення',data:D.reach,backgroundColor:G,borderRadius:8}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+new Chart(c2,{type:'line',data:{labels:D.mlab,datasets:[
+  {label:'CVR %',data:D.cvr,borderColor:G,backgroundColor:'rgba(52,209,134,.15)',fill:true,tension:.3,borderWidth:3},
+  {label:'CTR %',data:D.ctr,borderColor:'#1f6fb2',backgroundColor:'rgba(31,111,178,.1)',fill:true,tension:.3,borderWidth:3}
+]},options:{scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}}}});
+new Chart(c3,{type:'bar',data:{labels:D.pb_labels,datasets:[
+  {label:'Липень',data:D.pb_jul,backgroundColor:'#9fe3c2',borderRadius:6},
+  {label:'Серпень',data:D.pb_aug,backgroundColor:G,borderRadius:6}
+]},options:{indexAxis:'y',scales:{x:{beginAtZero:true}}}});
+</script>
+</body></html>
